@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do Administrador</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f8ff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h3, h4 {
+            text-align: center;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #444;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        .curso {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            background-color: #f0f4ff;
+        }
+        button {
+            background-color: #0056d2;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #003fa3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Área do Administrador</h1>
+        
+        <!-- Formulário de cadastro de aluno -->
+        <h3>Cadastro de Aluno</h3>
+        <form id="formCadastro">
+            <!-- Informações pessoais -->
+            <div class="input-group">
+                <label for="emailAluno">E-mail:</label>
+                <input type="email" id="emailAluno" required>
+            </div>
+
+            <div class="input-group">
+                <label for="senhaAluno">Senha:</label>
+                <input type="password" id="senhaAluno" required>
+            </div>
+
+            <div class="input-group">
+                <label for="cpfAluno">CPF:</label>
+                <input type="text" id="cpfAluno" required>
+            </div>
+
+            <div class="input-group">
+                <label for="telefoneAluno">Telefone:</label>
+                <input type="text" id="telefoneAluno" required>
+            </div>
+
+            <div class="input-group">
+                <label for="dataNascimento">Data de Nascimento:</label>
+                <input type="date" id="dataNascimento" required>
+            </div>
+
+            <div class="input-group">
+                <label for="ruaAluno">Rua:</label>
+                <input type="text" id="ruaAluno" required>
+            </div>
+
+            <div class="input-group">
+                <label for="numeroAluno">Número:</label>
+                <input type="text" id="numeroAluno" required>
+            </div>
+
+            <div class="input-group">
+                <label for="cidadeAluno">Cidade:</label>
+                <input type="text" id="cidadeAluno" required>
+            </div>
+
+            <!-- Cursos -->
+            <div id="cursosContainer">
+                <h4>Cursos do Aluno</h4>
+                <div class="curso">
+                    <input type="text" name="nomeCurso" placeholder="Nome do Curso" required>
+                    <input type="text" name="cargaHoraria" placeholder="Carga Horária" required>
+                    <input type="text" name="nota" placeholder="Nota" required>
+                    <input type="text" name="certificado" placeholder="Link do Certificado (opcional)">
+                </div>
+            </div>
+
+            <button type="button" id="addCurso">Adicionar Outro Curso</button><br><br>
+            <button type="submit">Cadastrar</button>
+        </form>
+
+        <hr>
+        <!-- Botão para ir para a área do aluno -->
+        <button id="goToAlunoPage">Ir para Área do Aluno</button>
+        <input type="email" id="emailAlunoReset" placeholder="E-mail do aluno" />
+<button id="btnEnviarReset">Enviar redefinição de senha</button>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js";
+        import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCodmRs47TZ54rIl3ZUtNPKle_3XPGws6Y",
+            authDomain: "cadastro-alunos-55c29.firebaseapp.com",
+            projectId: "cadastro-alunos-55c29",
+            storageBucket: "cadastro-alunos-55c29.appspot.com",
+            messagingSenderId: "544995398645",
+            appId: "1:544995398645:web:d3502682491da59ce586bc",
+            measurementId: "G-S7YBWXDHC7"
+        };
+
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Função para cadastrar o aluno
+        document.getElementById('formCadastro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Coleta as informações pessoais
+            const email = document.getElementById('emailAluno').value;
+            const senha = document.getElementById('senhaAluno').value;
+            const cpf = document.getElementById('cpfAluno').value;
+            const telefone = document.getElementById('telefoneAluno').value;
+            const dataNascimento = document.getElementById('dataNascimento').value;
+            const rua = document.getElementById('ruaAluno').value;
+            const numero = document.getElementById('numeroAluno').value;
+            const cidade = document.getElementById('cidadeAluno').value;
+
+            // Coletando os cursos
+            const cursos = Array.from(document.querySelectorAll('.curso')).map(curso => ({
+                nome: curso.querySelector('[name="nomeCurso"]').value,
+                cargaHoraria: curso.querySelector('[name="cargaHoraria"]').value,
+                nota: curso.querySelector('[name="nota"]').value,
+                certificado: curso.querySelector('[name="certificado"]').value
+            }));
+
+            try {
+                // Criar novo usuário
+                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+                const user = userCredential.user;
+
+                // Salvar dados do aluno no Firestore
+                await setDoc(doc(db, "alunos", user.uid), {
+                    email: email,
+                    cpf: cpf,
+                    telefone: telefone,
+                    dataNascimento: dataNascimento,
+                    endereco: {
+                        rua: rua,
+                        numero: numero,
+                        cidade: cidade
+                    },
+                    cursos: cursos
+                });
+
+                alert('Aluno cadastrado com sucesso!');
+                
+                // Redirecionar para a área do aluno
+                window.location.href = "area-aluno.html";  // Substitua com o caminho correto da sua página da área do aluno
+            } catch (error) {
+                console.error("Erro ao cadastrar aluno: ", error);
+                alert("Erro ao cadastrar aluno: " + error.message);
+            }
+        });
+
+        // Lógica para adicionar novos cursos
+        let cursoCount = 1; // Variável para contar o número de cursos adicionados
+
+        document.getElementById('addCurso').addEventListener('click', () => {
+            const cursoDiv = document.createElement('div');
+            cursoDiv.classList.add('curso');
+            cursoDiv.innerHTML = `
+                <h4>Curso ${cursoCount}</h4>
+                <input type="text" name="nomeCurso" placeholder="Nome do Curso" required>
+                <input type="text" name="cargaHoraria" placeholder="Carga Horária" required>
+                <input type="text" name="nota" placeholder="Nota" required>
+                <input type="text" name="certificado" placeholder="Link do Certificado (opcional)">
+            `;
+            document.getElementById('cursosContainer').appendChild(cursoDiv);
+            cursoCount++; // Incrementa o contador para o próximo curso
+        });
+
+        // Redirecionamento para a área do aluno
+        document.getElementById('goToAlunoPage').addEventListener('click', () => {
+            window.location.href = "area-aluno.html";  // Substitua com o caminho correto da sua página da área do aluno
+        });
+        
+    </script>
+</body>
+</html>
